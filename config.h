@@ -5,24 +5,13 @@ static const char *voldown[] = { "~/.local/bin/vol-down",  NULL  };
 static const char *volup[]   = { "~/.local/bin/vol-up",  NULL  };
 static const char *flameshot[] = {"flameshot", " gui"};
 
-static const char normfgcolor[]     = "#bbbbbb";
-
-
-static const char selbordercolor[]  = "#005577";
-static const char selbgcolor[]      = "#005577";
-static const char selfgcolor[]      = "#eeeeee";
-static unsigned int baralpha        = 0xd0;
-static unsigned int borderalpha     = OPAQUE;
-
 /* appearance */
 static const unsigned int borderpx  = 1;        /* border pixel of windows */
 static const unsigned int snap      = 32;       /* snap pixel */
 static const int showbar            = 3;        /* 0 means no bar */
 static const int topbar             = 3;        /* 0 means bottom bar */
-static const int startontag         = 1;        /* 0 means no tag active on start */
-
-static const char *fonts[]          = { "JetBrainsMonoExtraBold Nerd Font:size=14" };
-static const char dmenufont[]       = "JetBrainsMonoExtraBold Nerd Font:size=14";
+static const char *fonts[]          = { "monospace:size=14" };
+static const char dmenufont[]       = "JetBrains Mono:size=14";
 static const char col_gray1[]       = "#222222";
 static const char col_gray2[]       = "#444444";
 static const char col_gray3[]       = "#bbbbbb";
@@ -54,14 +43,12 @@ static const float mfact     = 0.55; /* factor of master area size [0.05..0.95] 
 static const int nmaster     = 1;    /* number of clients in master area */
 static const int resizehints = 1;    /* 1 means respect size hints in tiled resizals */
 static const int lockfullscreen = 1; /* 1 will force focus on the fullscreen window */
-#include "layouts.c"
+
 static const Layout layouts[] = {
     /* symbol     arrange function */
     { "[][]",      tile },    /* first entry is default */
     { "[[]]",      NULL },    /* no layout function means floating behavior */
-    { "[MM]",      monocle },
-    { "HHHH",      grid },
-
+    { "[M]",      monocle },
 };
 
 /* key definitions */
@@ -99,8 +86,6 @@ static Key keys[] = {
     { MODKEY,                       XK_t,      setlayout,      {.v = &layouts[0]} },
     { MODKEY,                       XK_f,      setlayout,      {.v = &layouts[1]} },
     { MODKEY,                       XK_m,      setlayout,      {.v = &layouts[2]} },
-    { MODKEY,                       XK_g,      setlayout,      {.v = &layouts[3]} },
-
     { MODKEY,                       XK_space,  setlayout,      {0} },
     { MODKEY|ShiftMask,             XK_space,  togglefloating, {0} },
     { MODKEY,                       XK_0,      view,           {.ui = ~0 } },
