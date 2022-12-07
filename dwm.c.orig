@@ -77,6 +77,13 @@
 #define MWM_DECOR_BORDER            (1 << 1)
 #define MWM_DECOR_TITLE             (1 << 3)
 
+#define MWM_HINTS_FLAGS_FIELD       0
+#define MWM_HINTS_DECORATIONS_FIELD 2
+#define MWM_HINTS_DECORATIONS       (1 << 1)
+#define MWM_DECOR_ALL               (1 << 0)
+#define MWM_DECOR_BORDER            (1 << 1)
+#define MWM_DECOR_TITLE             (1 << 3)
+
 /* enums */
 enum { CurNormal, CurResize, CurMove, CurLast }; /* cursor */
 enum { SchemeNorm, SchemeSel }; /* color schemes */
@@ -139,6 +146,7 @@ struct Monitor {
 	int by;               /* bar geometry */
 	int mx, my, mw, mh;   /* screen size */
 	int wx, wy, ww, wh;   /* window area  */
+	int gappx;            /* gaps between windows */
 	unsigned int seltags;
 	unsigned int sellt;
 	unsigned int tagset[2];
@@ -689,6 +697,7 @@ createmon(void)
 	m->nmaster = nmaster;
 	m->showbar = showbar;
 	m->topbar = topbar;
+	m->gappx = gappx;
 	m->lt[0] = &layouts[0];
 	m->lt[1] = &layouts[1 % LENGTH(layouts)];
 	strncpy(m->ltsymbol, layouts[0].symbol, sizeof m->ltsymbol);
@@ -1714,6 +1723,16 @@ fullscreen(const Arg *arg)
 }
 
 void
+setgaps(const Arg *arg)
+{
+	if ((arg->i == 0) || (selmon->gappx + arg->i < 0))
+		selmon->gappx = 0;
+	else
+		selmon->gappx += arg->i;
+	arrange(selmon);
+}
+
+void
 setlayout(const Arg *arg)
 {
 	if (!arg || !arg->v || arg->v != selmon->lt[selmon->sellt])
@@ -1940,6 +1959,39 @@ tile(Monitor *m)
 			if (ty + HEIGHT(c) < m->wh)
 				ty += HEIGHT(c);
 		}
+}
+
+void
+updatemotifhints(Client *c)
+{
+	Atom real;
+	int format;
+	unsigned char *p = NULL;
+	unsigned long n, extra;
+	unsigned long *motif;
+	int width, height;
+
+	if (!decorhints)
+		return;
+
+	if (XGetWindowProperty(dpy, c->win, motifatom, 0L, 5L, False, motifatom,
+	                       &real, &format, &n, &extra, &p) == Success && p != NULL) {
+		motif = (unsigned long*)p;
+		if (motif[MWM_HINTS_FLAGS_FIELD] & MWM_HINTS_DECORATIONS) {
+			width = WIDTH(c);
+			height = HEIGHT(c);
+
+			if (motif[MWM_HINTS_DECORATIONS_FIELD] & MWM_DECOR_ALL ||
+			    motif[MWM_HINTS_DECORATIONS_FIELD] & MWM_DECOR_BORDER ||
+			    motif[MWM_HINTS_DECORATIONS_FIELD] & MWM_DECOR_TITLE)
+				c->bw = c->oldbw = borderpx;
+			else
+				c->bw = c->oldbw = 0;
+
+			resize(c, c->x, c->y, width - (2*c->bw), height - (2*c->bw), 0);
+		}
+		XFree(p);
+	}
 }
 
 void
@@ -2178,39 +2230,6 @@ updategeom(void)
 		selmon = wintomon(root);
 	}
 	return dirty;
-}
-
-void
-updatemotifhints(Client *c)
-{
-	Atom real;
-	int format;
-	unsigned char *p = NULL;
-	unsigned long n, extra;
-	unsigned long *motif;
-	int width, height;
-
-	if (!decorhints)
-		return;
-
-	if (XGetWindowProperty(dpy, c->win, motifatom, 0L, 5L, False, motifatom,
-	                       &real, &format, &n, &extra, &p) == Success && p != NULL) {
-		motif = (unsigned long*)p;
-		if (motif[MWM_HINTS_FLAGS_FIELD] & MWM_HINTS_DECORATIONS) {
-			width = WIDTH(c);
-			height = HEIGHT(c);
-
-			if (motif[MWM_HINTS_DECORATIONS_FIELD] & MWM_DECOR_ALL ||
-			    motif[MWM_HINTS_DECORATIONS_FIELD] & MWM_DECOR_BORDER ||
-			    motif[MWM_HINTS_DECORATIONS_FIELD] & MWM_DECOR_TITLE)
-				c->bw = c->oldbw = borderpx;
-			else
-				c->bw = c->oldbw = 0;
-
-			resize(c, c->x, c->y, width - (2*c->bw), height - (2*c->bw), 0);
-		}
-		XFree(p);
-	}
 }
 
 /*void*/
